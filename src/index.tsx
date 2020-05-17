@@ -11,7 +11,7 @@ ReactDOM.render(
   <React.StrictMode>
     <RecoilRoot initializeState={initialize}>
       <Persist />
-      <ClockProvider />
+      {/* <ClockProvider /> */}
       <App />
     </RecoilRoot>
   </React.StrictMode>,

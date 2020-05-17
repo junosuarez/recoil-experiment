@@ -2,6 +2,8 @@ import {
   useTransactionSubscription_UNSTABLE,
   useTransactionObservation_UNSTABLE,
 } from "recoil";
+// @ts-ignore
+import invariant from "tiny-invariant/dist/tiny-invariant.cjs.js";
 const prefix = "_p:";
 
 // @ts-ignore
@@ -10,10 +12,17 @@ export function initialize({ set, setUnvalidatedAtomValues }): void {
     .filter((key) => key.startsWith(prefix))
     .map((key) => key.replace(prefix, ""))
     .reduce((acc, key) => {
-      acc.set(key, JSON.parse(localStorage.getItem(prefix + key) || "null"));
+      acc.set(
+        key,
+        JSON.parse(localStorage.getItem(prefix + key) || "null", deserializer)
+      );
       return acc;
     }, new Map());
+  console.log("restore", map);
   setUnvalidatedAtomValues(map);
+  // map.forEach((val, key) => {
+  //   set({ key }, val);
+  // });
 
   // this throws an error if the key is unrecognized
   // Object.keys(localStorage)
@@ -53,8 +62,29 @@ export function Persist() {
       .map((key) => [key, state.nextTree.atomValues.get(key).getValue()])
       .forEach(([key, val]) => {
         console.log("s", key, val);
-        localStorage.setItem(prefix + key, JSON.stringify(val));
+        localStorage.setItem(prefix + key, JSON.stringify(val, serializer));
       });
   });
   return null;
 }
+
+function serializer(key: any, value: any) {
+  if (typeof value === "object" && value instanceof Set) {
+    return { $set: Array.from(value) };
+  }
+  return value;
+}
+
+function deserializer(key: any, value: any) {
+  if (typeof value === "object" && value.$set) {
+    return new Set(value.$set);
+  }
+  return value;
+}
+
+const through = JSON.parse(
+  JSON.stringify(new Set([1]), serializer),
+  deserializer
+);
+// @ts-ignore
+invariant(through instanceof Set && through.size === 1);

@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { atom, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import "./App.css";
 
 import { ConditionForm } from "./app/ConditionForm";
@@ -9,7 +9,7 @@ import { Condition } from "./app/Condition";
 function App() {
   // const value = useRecoilValue(seconds);
   const ids = useRecoilValue(conditionIds);
-
+  console.log("conditionids", ids);
   return (
     <div className="App">
       <Suspense fallback={"loading.."}>

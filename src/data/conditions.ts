@@ -27,19 +27,20 @@ export interface Condition {
 // setting individual conditions
 export const conditionIds = atom<Set<string>>({
   key: "conditionIds",
-  default: new Set(),
+  persistence_UNSTABLE: {
+    type: "url",
+    validator: (x: any) => x,
+  },
 });
-
-// selector familiy appears not to be in the open source release yet. typical FB.
-// export const condition = selectorFamily({
-//   key: "condition",
-//   get: (id) => ({ get }) => get(conditions)[id],
-// });
 
 const condition_ = (id: string) =>
   atom<Condition>({
     key: "condition:" + id,
     default: { id, expression: "" },
+    persistence_UNSTABLE: {
+      type: "url",
+      validator: (x: any) => x,
+    },
   });
 // experiment in having a selector facade with a setter to maintain the index
 export const condition = (id: string) => {
