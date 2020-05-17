@@ -3,7 +3,7 @@ interface Token {
   token: string;
   tokenType: TokenType;
 }
-interface Expression {
+export interface Expression {
   varNames: string[];
   tokens: Token[];
 }
@@ -81,7 +81,7 @@ function evalOp(lhs: number, op: string, rhs: number): number {
 
 export function evalExpression(
   tokens: Token[],
-  getVal: (name: string) => number
+  vars: { [name: string]: number }
 ) {
   const val = tokens.reduce(
     (acc, { token, tokenType }) => {
@@ -96,7 +96,7 @@ export function evalExpression(
           // console.log(lhs, acc.op, rhs, "=", acc.val);
           return acc;
         case "ALPHA":
-          rhs = getVal(token);
+          rhs = vars[token];
           console.log("getval", token, rhs);
           acc.val = evalOp(lhs, acc.op, rhs);
           return acc;

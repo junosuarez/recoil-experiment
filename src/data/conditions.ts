@@ -1,4 +1,9 @@
-import { atom, selector } from "recoil";
+import { atom, selector, Value, SelectorOptions } from "recoil";
+import {
+  Expression,
+  parseExpression,
+  evalExpression,
+} from "../service/calculator";
 
 function deleteImmutable<T>(set: Set<T>, val: T): Set<T> {
   if (set.has(val)) {
@@ -17,6 +22,23 @@ function addImmutable<T>(set: Set<T>, val: T): Set<T> {
   return set;
 }
 
+const selectorCache: { [key: string]: Value<any> } = {};
+
+function getSelector<T>(options: SelectorOptions): Value<T> {
+  const { key } = options;
+  if (key in selectorCache) {
+    return selectorCache[key];
+  }
+
+  selectorCache[key] = selector(options);
+
+  return selectorCache[key];
+}
+
+///
+///
+///
+
 export interface Condition {
   id: string;
   expression: string;
@@ -27,8 +49,9 @@ export interface Condition {
 // setting individual conditions
 export const conditionIds = atom<Set<string>>({
   key: "conditionIds",
+  default: new Set(),
   persistence_UNSTABLE: {
-    type: "url",
+    type: "local",
     validator: (x: any) => x,
   },
 });
@@ -38,13 +61,13 @@ const condition_ = (id: string) =>
     key: "condition:" + id,
     default: { id, expression: "" },
     persistence_UNSTABLE: {
-      type: "url",
+      type: "local",
       validator: (x: any) => x,
     },
   });
 // experiment in having a selector facade with a setter to maintain the index
 export const condition = (id: string) => {
-  return selector<Condition>({
+  return getSelector<Condition>({
     key: "condition_:" + id,
     get({ get }) {
       return get(condition_(id));
@@ -64,31 +87,96 @@ export const condition = (id: string) => {
 
 type ConditionKinds = "number" | "boolean" | "expression";
 
-interface ConditionKind {
-  kind: ConditionKinds;
-}
+type ConditionKind =
+  | {
+      kind: "number";
+      parsed: number;
+    }
+  | {
+      kind: "boolean";
+      parsed: number;
+    }
+  | {
+      kind: "expression";
+      parsed: Expression;
+    };
 
 export const conditionKind = (id: string) => {
   return selector<ConditionKind>({
     key: "conditionKind" + id,
     get({ get }) {
       const { expression } = get(condition(id));
-      return /^[\d\.]+$/.test(expression)
+      const kind = /^[\d.]+$/.test(expression)
         ? "number"
         : ["true", "false"].includes(expression)
         ? "boolean"
         : "expression";
+
+      let parsed;
+      switch (kind) {
+        case "number":
+          parsed = parseFloat(expression);
+          break;
+        case "boolean":
+          parsed = expression === "true" ? 1 : 0;
+          break;
+        case "expression":
+          parsed = parseExpression(expression);
+          break;
+      }
+
+      return { kind, parsed };
     },
   });
 };
 
-// export const conditionVal = (id: string) =>
-//   selector<ConditionVal>({
-//     key: "conditionVal:" + id,
-//     get: async ({ get }) => {
-//       return {};
-//     },
-//   });
+export const foo = (a: any = 1): Value<{}> => {
+  const key = `foo`;
+  return getSelector({
+    key,
+    get: async ({ get }) => {
+      return Promise.resolve("");
+    },
+  });
+};
+
+type ConditionVal = string | number;
+
+export const conditionVal = (id: string) =>
+  getSelector<ConditionVal>({
+    key: "conditionVal:" + id,
+    get: async ({ get }) => {
+      const k = get(conditionKind(id));
+
+      let value;
+      switch (k.kind) {
+        case "number":
+          value = k.parsed;
+          break;
+        case "boolean":
+          value = k.parsed;
+          break;
+        case "expression":
+          const vars = (
+            await Promise.all(
+              k.parsed.varNames.map(async (varName) => [
+                varName,
+                await get(conditionVal(varName)),
+              ])
+            )
+          ).reduce((acc, [k, v]) => {
+            acc[k] = v;
+            return acc;
+          }, {} as any);
+          console.log(k.parsed.varNames, vars);
+          value = evalExpression(k.parsed.tokens, vars);
+
+          break;
+      }
+      return value;
+    },
+  });
+
 //   get: async ({ get }) => {
 //     const state = get(conditions);
 //     const condition = state[id];

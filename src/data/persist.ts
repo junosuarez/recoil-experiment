@@ -18,11 +18,7 @@ export function initialize({ set, setUnvalidatedAtomValues }): void {
       );
       return acc;
     }, new Map());
-  console.log("restore", map);
   setUnvalidatedAtomValues(map);
-  // map.forEach((val, key) => {
-  //   set({ key }, val);
-  // });
 
   // this throws an error if the key is unrecognized
   // Object.keys(localStorage)
@@ -43,7 +39,7 @@ export function Persist() {
   });
 
   useTransactionObservation_UNSTABLE((x: any, ...y: any[]) => {
-    const { atomInfo, atomValues, modifiedAtoms } = x;
+    const { atomInfo, modifiedAtoms } = x;
 
     const toPersist = [...modifiedAtoms].filter(
       (key) => atomInfo.get(key).persistence_UNSTABLE.type !== "ignore"
@@ -54,8 +50,6 @@ export function Persist() {
     }
 
     const state = getState();
-
-    console.log("P", x, toPersist, state);
 
     [...toPersist]
       .filter((key) => state.nextTree.atomValues.has(key))

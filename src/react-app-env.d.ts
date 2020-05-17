@@ -3,18 +3,17 @@
 module "recoil" {
   interface Value<T> {}
 
+  interface SelectorOptions {
+    key: string;
+    get?: (props: { get: <T>(selector: Value<T>) => T }) => any;
+    set?: (props: { set: Function }, newVal) => any;
+  }
+
   export function RecoilRoot(c: any): any;
   export function atom<T>(c: object): Value<T>;
-  export function selector<T>(c: {
-    key: string;
-    get?: (props: { get: Function }) => any;
-    set?: (props: { set: Function }, newVal) => any;
-  }): Value<T>;
-  export function selectorFamily(c: {
-    key: string;
-    get?: (param: any) => (props: { get: Function }) => any;
-  }): any;
+  export function selector<T>(c: SelectorOptions): Value<T>;
   export function useRecoilValue<T>(c: Value<T>): T;
+  export function useRecoilValueLoadable<T>(c: Value<T>): T;
   export function useSetRecoilState(c: object): any;
   export function useRecoilState(c: object): [T, any];
   export function useTransactionSubscription_UNSTABLE(c: any): any;

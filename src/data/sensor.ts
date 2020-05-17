@@ -1,7 +1,7 @@
 import { atom, useRecoilValue, useSetRecoilState, selector } from "recoil";
 import { useEffect } from "react";
 
-export const clock = atom({
+export const clock = atom<number>({
   key: "clock",
   default: 0,
   persistence_UNSTABLE: {

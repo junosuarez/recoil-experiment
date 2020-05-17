@@ -3,8 +3,13 @@ import { useRecoilValue } from "recoil";
 import "./App.css";
 
 import { ConditionForm } from "./app/ConditionForm";
-import { conditionIds } from "./data/conditions";
+import { conditionIds, foo } from "./data/conditions";
 import { Condition } from "./app/Condition";
+
+export function Foo() {
+  const val = useRecoilValue(foo());
+  return <>{val}</>;
+}
 
 function App() {
   // const value = useRecoilValue(seconds);
@@ -12,6 +17,9 @@ function App() {
   console.log("conditionids", ids);
   return (
     <div className="App">
+      <Suspense fallback="xxx">
+        <Foo />
+      </Suspense>
       <Suspense fallback={"loading.."}>
         <ul>
           {Array.from(ids.values())
