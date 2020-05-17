@@ -1,3 +1,7 @@
+body {
+  background-color: #444;
+  color: #eee;
+}
 * {
   margin: 0;
   padding: 0;
@@ -63,7 +67,9 @@ li {
   flex-grow: 1;
   text-align: left;
 }
-
+.Condition button {
+  margin: 6px;
+}
 .Condition strong {
   display: inline-block;
   width: 100px;

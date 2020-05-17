@@ -14,6 +14,7 @@ export function ConditionForm({ id }: Props) {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
+    debugger;
     saveCondition({ id: name, expression: exp });
     setName("");
     setExp("");

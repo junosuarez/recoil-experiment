@@ -4,16 +4,24 @@ import {
 } from "recoil";
 const prefix = "_p:";
 
-const ingored = ["clock"];
-
 // @ts-ignore
 export function initialize({ set, setUnvalidatedAtomValues }): void {
-  Object.keys(localStorage)
+  const map = Object.keys(localStorage)
     .filter((key) => key.startsWith(prefix))
     .map((key) => key.replace(prefix, ""))
-    .forEach((key) => {
-      set({ key }, JSON.parse(localStorage.getItem(prefix + key) || "null"));
-    });
+    .reduce((acc, key) => {
+      acc.set(key, JSON.parse(localStorage.getItem(prefix + key) || "null"));
+      return acc;
+    }, new Map());
+  setUnvalidatedAtomValues(map);
+
+  // this throws an error if the key is unrecognized
+  // Object.keys(localStorage)
+  //   .filter((key) => key.startsWith(prefix))
+  //   .map((key) => key.replace(prefix, ""))
+  // .forEach((key) => {
+  //   // set({ key }, JSON.parse(localStorage.getItem(prefix + key) || "null"));
+  // });
 }
 
 export function Persist() {
